@@ -2,13 +2,22 @@ package org.example;
 
 public class Main {
     public static void main(String[] args) {
-        User u1 = User.create("john_doe", "John Doe", "john@mail.com");
-        System.out.println(u1.format());
+        Permission p1 = new Permission("read", "users", "Can read user data");
+        Permission p2 = new Permission("WRITE", "reports", "Can modify reports");
+        Permission p3 = new Permission("Delete ", "Settings", "Can remove settings");
 
-//         try {
-//            User u2 = User.create("jo", "J D", "j@m.c");
-//        } catch (IllegalArgumentException e) {
-//            System.out.println("Error: " + e.getMessage());
-//        }
+        System.out.println(p1.format());
+        System.out.println(p2.format());
+        System.out.println(p3.format());
+
+        System.out.println(p1.matches("read", null));
+        System.out.println(p1.matches("WRITE", "users"));
+        System.out.println(p2.matches(".*ITE.*", "rep.*")); 
+
+        try {
+            Permission p4 = new Permission("TEST", "test", "");
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
     }
 }
