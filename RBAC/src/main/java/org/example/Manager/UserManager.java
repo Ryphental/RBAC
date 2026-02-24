@@ -50,7 +50,6 @@ public class UserManager implements Repository<User> {
 
     @Override
     public Optional<User> findById(String id) {
-        // For User, id is username
         return Optional.ofNullable(usersByUsername.get(id));
     }
 

@@ -43,7 +43,6 @@ public class RoleManager implements Repository<Role> {
     public boolean remove(Role role) {
         if (role == null) return false;
 
-        // Check if role is assigned to any user
         if (assignedRoleIds.contains(role.getId())) {
             throw new IllegalStateException("Cannot remove role " + role.getName() + " - it is assigned to users");
         }
@@ -134,7 +133,6 @@ public class RoleManager implements Repository<Role> {
                 .collect(Collectors.toList());
     }
 
-    // Methods to track role assignments
     public void markRoleAssigned(String roleId) {
         if (rolesById.containsKey(roleId)) {
             assignedRoleIds.add(roleId);
