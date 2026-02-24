@@ -1,51 +1,54 @@
 package org.example;
 
-import org.example.Filter.RoleFilter;
-import org.example.Filter.RoleFilters;
+import org.example.Filter.AssignmentFilter;
+import org.example.Filter.AssignmentFilters;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
+        User user1 = User.create("john_doe", "John Doe", "john@company.com");
+        User user2 = User.create("jane_smith", "Jane Smith", "jane@company.com");
+
         Permission readUsers = new Permission("READ", "users", "Can read users");
         Permission writeUsers = new Permission("WRITE", "users", "Can write users");
-        Permission deleteUsers = new Permission("DELETE", "users", "Can delete users");
-        Permission readReports = new Permission("READ", "reports", "Can read reports");
 
-        Role admin = new Role("Administrator", "Full access");
+        Role admin = new Role("Administrator", "Admin role");
         admin.addPermission(readUsers);
         admin.addPermission(writeUsers);
-        admin.addPermission(deleteUsers);
-        admin.addPermission(readReports);
-
-        Role moderator = new Role("Moderator", "Limited access");
-        moderator.addPermission(readUsers);
-        moderator.addPermission(readReports);
 
         Role viewer = new Role("Viewer", "View only");
-        viewer.addPermission(readReports);
+        viewer.addPermission(readUsers);
 
-        java.util.List<Role> roles = java.util.List.of(admin, moderator, viewer);
+        AssignmentMetadata meta1 = AssignmentMetadata.now("admin", "Initial setup");
+        PermanentAssignment permAssign = new PermanentAssignment(user1, admin, meta1);
 
-        System.out.println("=== Roles with name containing 'Admin' ===");
-        roles.stream()
-                .filter(RoleFilters.byNameContains("Admin")::test)
-                .forEach(r -> System.out.println(r.getName()));
+        AssignmentMetadata meta2 = AssignmentMetadata.now("admin");
+        String expiresAt = LocalDateTime.now().plusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        TemporaryAssignment tempAssign = new TemporaryAssignment(user2, viewer, meta2, expiresAt, false);
 
-        System.out.println("\n=== Roles with DELETE on users permission ===");
-        roles.stream()
-                .filter(RoleFilters.hasPermission("DELETE", "users")::test)
-                .forEach(r -> System.out.println(r.getName()));
+        List<RoleAssignment> assignments = List.of(permAssign, tempAssign);
 
-        System.out.println("\n=== Roles with at least 3 permissions ===");
-        roles.stream()
-                .filter(RoleFilters.hasAtLeastNPermissions(3)::test)
-                .forEach(r -> System.out.println(r.getName() + ": " + r.getPermissions().size() + " permissions"));
+        System.out.println("=== Active assignments ===");
+        assignments.stream()
+                .filter(AssignmentFilters.activeOnly()::test)
+                .forEach(a -> System.out.println(((AbstractRoleAssignment) a).summary()));
 
-        System.out.println("\n=== Combined filter (has READ users AND at least 2 permissions) ===");
-        RoleFilter readUsersFilter = RoleFilters.hasPermission("READ", "users");
-        RoleFilter min2Perms = RoleFilters.hasAtLeastNPermissions(2);
+        System.out.println("\n=== Assignments by user john_doe ===");
+        assignments.stream()
+                .filter(AssignmentFilters.byUsername("john_doe")::test)
+                .forEach(a -> System.out.println(((AbstractRoleAssignment) a).summary()));
 
-        roles.stream()
-                .filter(readUsersFilter.and(min2Perms)::test)
-                .forEach(r -> System.out.println(r.getName()));
+        System.out.println("\n=== Temporary assignments ===");
+        assignments.stream()
+                .filter(AssignmentFilters.byType("TEMPORARY")::test)
+                .forEach(a -> System.out.println(((AbstractRoleAssignment) a).summary()));
+
+        System.out.println("\n=== Combined filter (active AND by admin) ===");
+        assignments.stream()
+                .filter(AssignmentFilters.activeOnly()
+                        .and(AssignmentFilters.assignedBy("admin"))::test)
+                .forEach(a -> System.out.println(((AbstractRoleAssignment) a).summary()));
     }
 }
