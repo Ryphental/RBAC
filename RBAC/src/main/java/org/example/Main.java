@@ -1,67 +1,44 @@
 package org.example;
 
+import org.example.Manager.UserManager;
+import org.example.Filter.UserFilters;
 import org.example.Sort.UserSorters;
-import org.example.Sort.RoleSorters;
-import org.example.Sort.AssignmentSorters;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        // Test User sorting
-        List<User> users = List.of(
-                User.create("john_doe", "John Doe", "john@company.com"),
-                User.create("alice_smith", "Alice Smith", "alice@company.com"),
-                User.create("bob_wilson", "Bob Wilson", "bob@gmail.com")
-        );
+        UserManager userManager = new UserManager();
 
-        System.out.println("=== Users sorted by username ===");
-        users.stream()
-                .sorted(UserSorters.byUsername())
+        try {
+            userManager.add(User.create("john_doe", "John Doe", "john@company.com"));
+            userManager.add(User.create("jane_smith", "Jane Smith", "jane@company.com"));
+            userManager.add(User.create("bob_wilson", "Bob Wilson", "bob@gmail.com"));
+
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        System.out.println("=== Company email users ===");
+        userManager.findByFilter(UserFilters.byEmailDomain("@company.com"))
                 .forEach(u -> System.out.println(u.format()));
 
-        // Test Role sorting
-        Permission p1 = new Permission("READ", "users", "read");
-        Permission p2 = new Permission("WRITE", "users", "write");
-        Permission p3 = new Permission("DELETE", "users", "delete");
+        System.out.println("\n=== All users sorted by username ===");
+        userManager.findAll(UserFilters.byFullNameContains(""), UserSorters.byUsername())
+                .forEach(u -> System.out.println(u.format()));
 
-        Role admin = new Role("Admin", "admin role");
-        admin.addPermission(p1);
-        admin.addPermission(p2);
-        admin.addPermission(p3);
+        try {
+            userManager.update("john_doe", "John Updated", "john.new@company.com");
+            System.out.println("\n=== After update ===");
+            userManager.findByUsername("john_doe")
+                    .ifPresent(u -> System.out.println("Updated: " + u.format()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("Update error: " + e.getMessage());
+        }
 
-        Role viewer = new Role("Viewer", "viewer role");
-        viewer.addPermission(p1);
+        System.out.println("\n=== Exists checks ===");
+        System.out.println("john_doe exists: " + userManager.exists("john_doe"));
+        System.out.println("unknown exists: " + userManager.exists("unknown"));
 
-        Role moderator = new Role("Moderator", "mod role");
-        moderator.addPermission(p1);
-        moderator.addPermission(p2);
-
-        List<Role> roles = List.of(admin, viewer, moderator);
-
-        System.out.println("\n=== Roles sorted by permission count ===");
-        roles.stream()
-                .sorted(RoleSorters.byPermissionCount())
-                .forEach(r -> System.out.println(r.getName() + ": " + r.getPermissions().size() + " permissions"));
-
-        // Test Assignment sorting
-        User user1 = User.create("john_doe", "John Doe", "john@company.com");
-        User user2 = User.create("jane_smith", "Jane Smith", "jane@company.com");
-
-        AssignmentMetadata meta1 = AssignmentMetadata.now("admin");
-        AssignmentMetadata meta2 = AssignmentMetadata.now("admin", "Project X");
-
-        PermanentAssignment permAssign = new PermanentAssignment(user1, admin, meta1);
-
-        String expiresAt = LocalDateTime.now().plusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        TemporaryAssignment tempAssign = new TemporaryAssignment(user2, viewer, meta2, expiresAt, false);
-
-        List<RoleAssignment> assignments = List.of(permAssign, tempAssign);
-
-        System.out.println("\n=== Assignments sorted by username ===");
-        assignments.stream()
-                .sorted(AssignmentSorters.byUsername())
-                .forEach(a -> System.out.println(((AbstractRoleAssignment) a).summary()));
+        System.out.println("Total users: " + userManager.count());
     }
 }
