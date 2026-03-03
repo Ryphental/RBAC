@@ -80,21 +80,17 @@ public class RBACSystem {
         viewerRole.addPermission(readReports);
         viewerRole.addPermission(readSettings);
 
-        // Add roles to manager
         roleManager.add(adminRole);
         roleManager.add(managerRole);
         roleManager.add(viewerRole);
 
-        // Create admin user
         User admin = User.create("admin", "System Administrator", "admin@system.local");
         userManager.add(admin);
 
-        // Assign Admin role to admin user
         AssignmentMetadata metadata = AssignmentMetadata.now("system", "Initial setup");
         PermanentAssignment adminAssignment = new PermanentAssignment(admin, adminRole, metadata);
         assignmentManager.add(adminAssignment);
 
-        // Set current user
         currentUser = "admin";
     }
 
