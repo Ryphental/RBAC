@@ -10,6 +10,7 @@ import org.example.Manager.RoleManager;
 import org.example.Manager.AssignmentManager;
 import org.example.audit.AuditLog;
 import org.example.report.ReportGenerator;
+import org.example.util.ConsoleUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -197,15 +198,12 @@ public class CommandRegistry {
     }
 
     private void userCreate(Scanner sc, RBACSystem sys) {
+        ConsoleUtils.printHeader("CREATE NEW USER");
+
         try {
-            System.out.print("Username: ");
-            String username = sc.nextLine().trim();
-
-            System.out.print("Full name: ");
-            String fullName = sc.nextLine().trim();
-
-            System.out.print("Email: ");
-            String email = sc.nextLine().trim();
+            String username = ConsoleUtils.promptString(sc, "Username", true);
+            String fullName = ConsoleUtils.promptString(sc, "Full name", true);
+            String email = ConsoleUtils.promptString(sc, "Email", true);
 
             User user = User.create(username, fullName, email);
             sys.getUserManager().add(user);
@@ -213,9 +211,9 @@ public class CommandRegistry {
             sys.getAuditLog().log("USER_CREATE", sys.getCurrentUser(), username,
                     String.format("Created user: %s <%s>", fullName, email));
 
-            System.out.println("User created successfully");
+            ConsoleUtils.printSuccess("User created successfully");
         } catch (IllegalArgumentException e) {
-            System.out.println("Error: " + e.getMessage());
+            ConsoleUtils.printError(e.getMessage());
         }
     }
 
@@ -253,27 +251,36 @@ public class CommandRegistry {
     }
 
     private void userDelete(Scanner sc, RBACSystem sys) {
-        System.out.print("Username to delete: ");
-        String username = sc.nextLine().trim();
+        ConsoleUtils.printHeader("DELETE USER");
+
+        String username = ConsoleUtils.promptString(sc, "Username to delete", true);
 
         sys.getUserManager().findByUsername(username).ifPresentOrElse(
                 user -> {
-                    System.out.print("Are you sure? (yes/no): ");
-                    if (sc.nextLine().trim().equalsIgnoreCase("yes")) {
-                        sys.getAssignmentManager().findByUser(user)
-                                .forEach(a -> sys.getAssignmentManager().remove(a));
+                    if (ConsoleUtils.promptYesNo(sc, "Are you sure you want to delete " + username + "?")) {
+
+                        List<RoleAssignment> assignments = sys.getAssignmentManager().findByUser(user);
+                        if (!assignments.isEmpty()) {
+                            ConsoleUtils.printWarning("User has " + assignments.size() + " active assignments");
+                            if (ConsoleUtils.promptYesNo(sc, "Delete assignments and continue?")) {
+                                assignments.forEach(a -> sys.getAssignmentManager().remove(a));
+                            } else {
+                                ConsoleUtils.printWarning("Deletion cancelled");
+                                return;
+                            }
+                        }
 
                         sys.getUserManager().remove(user);
 
                         sys.getAuditLog().log("USER_DELETE", sys.getCurrentUser(), username,
                                 String.format("Deleted user: %s <%s>", user.fullName(), user.email()));
 
-                        System.out.println("User deleted");
+                        ConsoleUtils.printSuccess("User deleted successfully");
                     } else {
-                        System.out.println("Deletion cancelled");
+                        ConsoleUtils.printWarning("Deletion cancelled");
                     }
                 },
-                () -> System.out.println("User not found")
+                () -> ConsoleUtils.printError("User not found")
         );
     }
 
@@ -366,38 +373,34 @@ public class CommandRegistry {
     }
 
     private void assignRole(Scanner sc, RBACSystem sys) {
+        ConsoleUtils.printHeader("ASSIGN ROLE TO USER");
+
         try {
-            System.out.print("Username: ");
-            String username = sc.nextLine().trim();
+            String username = ConsoleUtils.promptString(sc, "Username", true);
 
             User user = sys.getUserManager().findByUsername(username)
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-            System.out.println("\nAvailable roles:");
             List<Role> roles = sys.getRoleManager().findAll();
-            for (int i = 0; i < roles.size(); i++) {
-                System.out.printf("%d. %s\n", i + 1, roles.get(i).getName());
+            if (roles.isEmpty()) {
+                ConsoleUtils.printError("No roles available");
+                return;
             }
 
-            System.out.print("Choose role number: ");
-            int roleChoice = Integer.parseInt(sc.nextLine().trim()) - 1;
-            Role role = roles.get(roleChoice);
+            Role role = ConsoleUtils.promptChoice(sc, "Select role to assign", roles);
 
-            System.out.print("Assignment type (permanent/temporary): ");
-            String type = sc.nextLine().trim().toLowerCase();
+            List<String> types = List.of("permanent", "temporary");
+            String type = ConsoleUtils.promptChoice(sc, "Assignment type", types);
 
-            System.out.print("Reason (optional): ");
-            String reason = sc.nextLine().trim();
+            String reason = ConsoleUtils.promptString(sc, "Reason (optional)", false);
             if (reason.isEmpty()) reason = null;
 
             AssignmentMetadata metadata = AssignmentMetadata.now(sys.getCurrentUser(), reason);
             RoleAssignment assignment;
 
             if (type.equals("temporary")) {
-                System.out.print("Expiration date (yyyy-MM-dd HH:mm): ");
-                String expiresAt = sc.nextLine().trim();
-                System.out.print("Auto renew? (yes/no): ");
-                boolean autoRenew = sc.nextLine().trim().equalsIgnoreCase("yes");
+                String expiresAt = ConsoleUtils.promptString(sc, "Expiration date (yyyy-MM-dd HH:mm)", true);
+                boolean autoRenew = ConsoleUtils.promptYesNo(sc, "Auto renew?");
 
                 assignment = new TemporaryAssignment(user, role, metadata, expiresAt, autoRenew);
             } else {
@@ -407,15 +410,15 @@ public class CommandRegistry {
             sys.getAssignmentManager().add(assignment);
 
             sys.getAuditLog().log("ROLE_ASSIGN", sys.getCurrentUser(), username,
-                    String.format("Assigned role %s (%s) - %s", role.getName(), type,
-                            reason != null ? reason : "no reason"));
+                    String.format("Assigned role %s (%s)", role.getName(), type));
 
-            System.out.println("Role assigned successfully");
+            ConsoleUtils.printSuccess("Role assigned successfully");
 
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            ConsoleUtils.printError(e.getMessage());
         }
     }
+
 
     private void revokeRole(Scanner sc, RBACSystem sys) {
         try {
@@ -498,51 +501,47 @@ public class CommandRegistry {
     }
 
     private void userSearch(Scanner sc, RBACSystem sys) {
-        System.out.println("Search by:");
-        System.out.println("1. Username (contains)");
-        System.out.println("2. Email (contains)");
-        System.out.println("3. Email domain");
-        System.out.println("4. Full name (contains)");
-        System.out.print("Choose (1-4): ");
+        ConsoleUtils.printHeader("SEARCH USERS");
 
-        String choice = sc.nextLine().trim();
+        List<String> searchTypes = List.of(
+                "Username (contains)",
+                "Email (contains)",
+                "Email domain",
+                "Full name (contains)"
+        );
+
+        String choice = ConsoleUtils.promptChoice(sc, "Search by", searchTypes);
         UserFilter filter = null;
 
         try {
-            switch (choice) {
-                case "1":
-                    System.out.print("Enter username part: ");
-                    String uname = sc.nextLine().trim();
+            switch (searchTypes.indexOf(choice)) {
+                case 0:
+                    String uname = ConsoleUtils.promptString(sc, "Enter username part", true);
                     filter = UserFilters.byUsernameContains(uname);
                     break;
-                case "2":
-                    System.out.print("Enter email part: ");
-                    String email = sc.nextLine().trim();
+                case 1:
+                    String email = ConsoleUtils.promptString(sc, "Enter email part", true);
                     filter = user -> user.email().toLowerCase().contains(email.toLowerCase());
                     break;
-                case "3":
-                    System.out.print("Enter domain (e.g., @company.com): ");
-                    String domain = sc.nextLine().trim();
+                case 2:
+                    String domain = ConsoleUtils.promptString(sc, "Enter domain (e.g., @company.com)", true);
                     filter = UserFilters.byEmailDomain(domain);
                     break;
-                case "4":
-                    System.out.print("Enter name part: ");
-                    String name = sc.nextLine().trim();
+                case 3:
+                    String name = ConsoleUtils.promptString(sc, "Enter name part", true);
                     filter = UserFilters.byFullNameContains(name);
                     break;
-                default:
-                    System.out.println("Invalid choice");
-                    return;
             }
 
             List<User> results = sys.getUserManager().findByFilter(filter);
             if (results.isEmpty()) {
-                System.out.println("No users found");
+                ConsoleUtils.printWarning("No users found");
             } else {
+                ConsoleUtils.printSuccess("Found " + results.size() + " users:");
                 printUserTable(results);
             }
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            ConsoleUtils.printError(e.getMessage());
         }
     }
 
@@ -572,18 +571,17 @@ public class CommandRegistry {
     }
 
     private void roleAddPermission(Scanner sc, RBACSystem sys) {
+        ConsoleUtils.printHeader("ADD PERMISSION TO ROLE");
+
         try {
-            System.out.print("Role name: ");
-            String roleName = sc.nextLine().trim();
+            String roleName = ConsoleUtils.promptString(sc, "Role name", true);
 
-            System.out.print("Permission name (e.g., READ): ");
-            String permName = sc.nextLine().trim().toUpperCase();
+            Role role = sys.getRoleManager().findByName(roleName)
+                    .orElseThrow(() -> new IllegalArgumentException("Role not found"));
 
-            System.out.print("Resource (e.g., users): ");
-            String resource = sc.nextLine().trim().toLowerCase();
-
-            System.out.print("Description: ");
-            String desc = sc.nextLine().trim();
+            String permName = ConsoleUtils.promptString(sc, "Permission name (e.g., READ)", true).toUpperCase();
+            String resource = ConsoleUtils.promptString(sc, "Resource (e.g., users)", true).toLowerCase();
+            String desc = ConsoleUtils.promptString(sc, "Description", true);
 
             Permission permission = new Permission(permName, resource, desc);
             sys.getRoleManager().addPermissionToRole(roleName, permission);
@@ -591,9 +589,9 @@ public class CommandRegistry {
             sys.getAuditLog().log("PERMISSION_ADD", sys.getCurrentUser(), roleName,
                     String.format("Added permission %s on %s", permName, resource));
 
-            System.out.println("Permission added");
+            ConsoleUtils.printSuccess("Permission added");
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            ConsoleUtils.printError(e.getMessage());
         }
     }
 
