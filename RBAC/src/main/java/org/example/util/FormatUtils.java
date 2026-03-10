@@ -27,7 +27,6 @@ public class FormatUtils {
 
         StringBuilder sb = new StringBuilder();
 
-        // Top border
         sb.append(TOP_LEFT);
         for (int i = 0; i < columnWidths.length; i++) {
             sb.append(repeat(HORIZONTAL_LINE, columnWidths[i] + 2));
@@ -37,14 +36,12 @@ public class FormatUtils {
         }
         sb.append(TOP_RIGHT).append("\n");
 
-        // Header
         sb.append(VERTICAL_LINE);
         for (int i = 0; i < headers.length; i++) {
             sb.append(" ").append(padRight(headers[i], columnWidths[i])).append(" ").append(VERTICAL_LINE);
         }
         sb.append("\n");
 
-        // Header-bottom border
         sb.append(LEFT_MID);
         for (int i = 0; i < columnWidths.length; i++) {
             sb.append(repeat(HORIZONTAL_LINE, columnWidths[i] + 2));
@@ -54,7 +51,6 @@ public class FormatUtils {
         }
         sb.append(RIGHT_MID).append("\n");
 
-        // Rows
         for (String[] row : rows) {
             sb.append(VERTICAL_LINE);
             for (int i = 0; i < row.length; i++) {
@@ -64,7 +60,6 @@ public class FormatUtils {
             sb.append("\n");
         }
 
-        // Bottom border
         sb.append(BOTTOM_LEFT);
         for (int i = 0; i < columnWidths.length; i++) {
             sb.append(repeat(HORIZONTAL_LINE, columnWidths[i] + 2));
@@ -86,15 +81,12 @@ public class FormatUtils {
 
         StringBuilder sb = new StringBuilder();
 
-        // Top border
         sb.append(TOP_LEFT).append(repeat(HORIZONTAL_LINE, maxLength + 2)).append(TOP_RIGHT).append("\n");
 
-        // Content
         for (String line : lines) {
             sb.append(VERTICAL_LINE).append(" ").append(padRight(line, maxLength)).append(" ").append(VERTICAL_LINE).append("\n");
         }
 
-        // Bottom border
         sb.append(BOTTOM_LEFT).append(repeat(HORIZONTAL_LINE, maxLength + 2)).append(BOTTOM_RIGHT).append("\n");
 
         return sb.toString();
@@ -137,12 +129,10 @@ public class FormatUtils {
     private static int[] calculateColumnWidths(String[] headers, List<String[]> rows) {
         int[] widths = new int[headers.length];
 
-        // Initialize with header lengths
         for (int i = 0; i < headers.length; i++) {
             widths[i] = headers[i].length();
         }
 
-        // Update with row data
         for (String[] row : rows) {
             for (int i = 0; i < Math.min(row.length, headers.length); i++) {
                 if (row[i] != null) {

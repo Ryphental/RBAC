@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.util.DateUtils;
 import org.example.util.ValidationUtils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -8,8 +9,6 @@ import java.time.temporal.ChronoUnit;
 public class TemporaryAssignment extends AbstractRoleAssignment {
     private String expiresAt;
     private final boolean autoRenew;
-
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public TemporaryAssignment(User user, Role role, AssignmentMetadata metadata,
                                String expiresAt, boolean autoRenew) {
@@ -30,9 +29,7 @@ public class TemporaryAssignment extends AbstractRoleAssignment {
     }
 
     public boolean isExpired() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expire = LocalDateTime.parse(expiresAt, FORMATTER);
-        return now.isAfter(expire);
+        return DateUtils.isBefore(expiresAt, DateUtils.getCurrentDateTime());
     }
 
     public void extend(String newExpirationDate) {
@@ -49,18 +46,10 @@ public class TemporaryAssignment extends AbstractRoleAssignment {
     }
 
     public String getTimeRemaining() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expire = LocalDateTime.parse(expiresAt, FORMATTER);
-
-        if (now.isAfter(expire)) {
-            return "Expired";
+        if (isExpired()) {
+            return "Expired " + DateUtils.formatRelativeTime(expiresAt);
         }
-
-        long days = ChronoUnit.DAYS.between(now, expire);
-        long hours = ChronoUnit.HOURS.between(now, expire) % 24;
-        long minutes = ChronoUnit.MINUTES.between(now, expire) % 60;
-
-        return String.format("%d days, %d hours, %d minutes", days, hours, minutes);
+        return DateUtils.formatRelativeTime(expiresAt);
     }
 
     @Override
@@ -68,8 +57,9 @@ public class TemporaryAssignment extends AbstractRoleAssignment {
         String baseSummary = super.summary();
         String status = isActive() ? "ACTIVE" : "EXPIRED";
         String autoRenewText = autoRenew ? " (auto-renew)" : "";
+        String expiresInfo = "Expires: " + DateUtils.formatDateTime(expiresAt) + " (" + getTimeRemaining() + ")";
 
-        return String.format("%s\nExpires: %s%s\nStatus: %s",
-                baseSummary, expiresAt, autoRenewText, status);
+        return String.format("%s\n%s%s\nStatus: %s",
+                baseSummary, expiresInfo, autoRenewText, status);
     }
 }

@@ -122,7 +122,6 @@ public class AssignmentManager implements Repository<RoleAssignment> {
     public List<RoleAssignment> getExpiredAssignments() {
         return assignmentsById.values().stream()
                 .filter(a -> !a.isActive())
-                .filter(a -> a instanceof TemporaryAssignment)
                 .collect(Collectors.toList());
     }
 

@@ -11,6 +11,7 @@ import org.example.Manager.AssignmentManager;
 import org.example.audit.AuditLog;
 import org.example.report.ReportGenerator;
 import org.example.util.ConsoleUtils;
+import org.example.util.DateUtils;
 import org.example.util.FormatUtils;
 
 import java.time.LocalDateTime;
@@ -400,12 +401,29 @@ public class CommandRegistry {
             RoleAssignment assignment;
 
             if (type.equals("temporary")) {
-                String expiresAt = ConsoleUtils.promptString(sc, "Expiration date (yyyy-MM-dd HH:mm)", true);
+                String expiresAt;
+                while (true) {
+                    expiresAt = ConsoleUtils.promptString(sc, "Expiration date (yyyy-MM-dd HH:mm)", true);
+                    if (DateUtils.isValidDate(expiresAt)) {
+                        if (DateUtils.isBefore(expiresAt, DateUtils.getCurrentDateTime())) {
+                            ConsoleUtils.printWarning("Expiration date cannot be in the past");
+                            continue;
+                        }
+                        break;
+                    } else {
+                        ConsoleUtils.printError("Invalid date format. Use yyyy-MM-dd HH:mm");
+                    }
+                }
+
                 boolean autoRenew = ConsoleUtils.promptYesNo(sc, "Auto renew?");
 
                 assignment = new TemporaryAssignment(user, role, metadata, expiresAt, autoRenew);
+
+                String timeUntil = DateUtils.formatRelativeTime(expiresAt);
+                ConsoleUtils.printSuccess("Temporary assignment created - " + timeUntil);
             } else {
                 assignment = new PermanentAssignment(user, role, metadata);
+                ConsoleUtils.printSuccess("Permanent assignment created");
             }
 
             sys.getAssignmentManager().add(assignment);
