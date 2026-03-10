@@ -1,24 +1,21 @@
 package org.example;
 
+import org.example.util.ValidationUtils;
+
 public record Permission(String name, String resource, String description) {
 
     public Permission {
-        if (description == null || description.isBlank()) {
-            throw new IllegalArgumentException("Description cannot be empty");
-        }
+        ValidationUtils.requireNonEmpty(name, "Permission name");
+        ValidationUtils.requireNonEmpty(resource, "Resource");
+        ValidationUtils.requireNonEmpty(description, "Description");
+    }
 
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Name cannot be empty");
-        }
-        name = name.toUpperCase().trim();
-        if (name.contains(" ")) {
-            throw new IllegalArgumentException("Name cannot contain spaces");
-        }
-
-        if (resource == null || resource.isBlank()) {
-            throw new IllegalArgumentException("Resource cannot be empty");
-        }
-        resource = resource.toLowerCase().trim();
+    public static Permission create(String name, String resource, String description) {
+        return new Permission(
+                name.trim().toUpperCase().replaceAll("\\s+", ""),
+                resource.trim().toLowerCase(),
+                ValidationUtils.normalizeString(description)
+        );
     }
 
     public String format() {

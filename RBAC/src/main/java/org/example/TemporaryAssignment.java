@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.util.ValidationUtils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -13,6 +14,7 @@ public class TemporaryAssignment extends AbstractRoleAssignment {
     public TemporaryAssignment(User user, Role role, AssignmentMetadata metadata,
                                String expiresAt, boolean autoRenew) {
         super(user, role, metadata);
+        ValidationUtils.requireValidDate(expiresAt);
         this.expiresAt = expiresAt;
         this.autoRenew = autoRenew;
     }
@@ -34,6 +36,7 @@ public class TemporaryAssignment extends AbstractRoleAssignment {
     }
 
     public void extend(String newExpirationDate) {
+        ValidationUtils.requireValidDate(newExpirationDate);
         this.expiresAt = newExpirationDate;
     }
 

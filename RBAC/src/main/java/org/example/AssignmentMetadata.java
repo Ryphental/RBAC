@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.util.ValidationUtils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -8,12 +9,8 @@ public record AssignmentMetadata(String assignedBy, String assignedAt, String re
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     public AssignmentMetadata {
-        if (assignedBy == null || assignedBy.isBlank()) {
-            throw new IllegalArgumentException("assignedBy cannot be empty");
-        }
-        if (assignedAt == null || assignedAt.isBlank()) {
-            throw new IllegalArgumentException("assignedAt cannot be empty");
-        }
+        ValidationUtils.requireNonEmpty(assignedBy, "Assigned by");
+        ValidationUtils.requireNonEmpty(assignedAt, "Assigned at");
     }
 
     public static AssignmentMetadata now(String assignedBy, String reason) {

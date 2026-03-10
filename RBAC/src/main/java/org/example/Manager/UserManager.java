@@ -3,6 +3,7 @@ package org.example.Manager;
 import org.example.User;
 import org.example.Filter.UserFilter;
 import org.example.Repository.Repository;
+import org.example.util.ValidationUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -109,16 +110,21 @@ public class UserManager implements Repository<User> {
             throw new IllegalArgumentException("User with username " + username + " not found");
         }
 
+        ValidationUtils.requireNonEmpty(newFullName, "Full name");
+        ValidationUtils.requireValidEmail(newEmail);
+
         if (!existing.email().equals(newEmail) && usersByEmail.containsKey(newEmail)) {
             throw new IllegalArgumentException("Email " + newEmail + " is already in use");
         }
 
-        User updated = User.create(username, newFullName, newEmail);
+        String normalizedFullName = ValidationUtils.normalizeString(newFullName);
+        String normalizedEmail = newEmail.trim().toLowerCase();
+
+        User updated = User.create(username, normalizedFullName, normalizedEmail);
 
         usersByEmail.remove(existing.email());
-
         usersByUsername.put(username, updated);
-        usersByEmail.put(newEmail, updated);
+        usersByEmail.put(normalizedEmail, updated);
     }
 
     @Override
