@@ -3,6 +3,7 @@ package org.example.command;
 import org.example.Manager.UserManager;
 import org.example.Manager.RoleManager;
 import org.example.Manager.AssignmentManager;
+import org.example.audit.AuditLog;
 import org.example.*;
 
 import java.time.LocalDateTime;
@@ -13,12 +14,14 @@ public class RBACSystem {
     private final UserManager userManager;
     private final RoleManager roleManager;
     private final AssignmentManager assignmentManager;
+    private final AuditLog auditLog;
     private String currentUser;
 
     public RBACSystem() {
         this.userManager = new UserManager();
         this.roleManager = new RoleManager();
         this.assignmentManager = new AssignmentManager(userManager, roleManager);
+        this.auditLog = new AuditLog();
         this.currentUser = "system";
     }
 
@@ -32,6 +35,10 @@ public class RBACSystem {
 
     public AssignmentManager getAssignmentManager() {
         return assignmentManager;
+    }
+
+    public AuditLog getAuditLog() {
+        return auditLog;
     }
 
     public void setCurrentUser(String username) {
@@ -92,6 +99,8 @@ public class RBACSystem {
         assignmentManager.add(adminAssignment);
 
         currentUser = "admin";
+
+        auditLog.log("SYSTEM_INIT", "system", "system", "RBAC system initialized");
     }
 
     public String generateStatistics() {

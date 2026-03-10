@@ -8,6 +8,7 @@ import org.example.Sort.AssignmentSorters;
 import org.example.Manager.UserManager;
 import org.example.Manager.RoleManager;
 import org.example.Manager.AssignmentManager;
+import org.example.audit.AuditLog;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -64,6 +65,65 @@ public class CommandRegistry {
         parser.registerCommand("exit", "Exit program", this::exit);
         parser.registerCommand("save", "Save data to file", this::save);
         parser.registerCommand("load", "Load data from file", this::load);
+
+        parser.registerCommand("audit-log", "View audit log", this::auditLog);
+        parser.registerCommand("audit-save", "Save audit log to file", this::auditSave);
+    }
+
+    private void auditLog(Scanner sc, RBACSystem sys) {
+        System.out.println("Audit log options:");
+        System.out.println("1. Show all");
+        System.out.println("2. Filter by performer");
+        System.out.println("3. Filter by action");
+        System.out.print("Choose (1-3): ");
+
+        String choice = sc.nextLine().trim();
+        List<AuditLog.AuditEntry> entries;
+
+        switch (choice) {
+            case "2":
+                System.out.print("Enter performer username: ");
+                String performer = sc.nextLine().trim();
+                entries = sys.getAuditLog().getByPerformer(performer);
+                break;
+            case "3":
+                System.out.print("Enter action: ");
+                String action = sc.nextLine().trim().toUpperCase();
+                entries = sys.getAuditLog().getByAction(action);
+                break;
+            default:
+                entries = sys.getAuditLog().getAll();
+        }
+
+        if (entries.isEmpty()) {
+            System.out.println("No audit entries found");
+            return;
+        }
+
+        System.out.println("\n" + "=".repeat(100));
+        System.out.printf("%-20s | %-15s | %-15s | %-20s | %s\n",
+                "Timestamp", "Action", "Performer", "Target", "Details");
+        System.out.println("=".repeat(100));
+
+        entries.forEach(e -> {
+            System.out.printf("%-20s | %-15s | %-15s | %-20s | %s\n",
+                    e.timestamp(),
+                    truncate(e.action(), 15),
+                    truncate(e.performer(), 15),
+                    truncate(e.target(), 20),
+                    truncate(e.details(), 30));
+        });
+        System.out.println("=".repeat(100));
+        System.out.println("Total entries: " + entries.size());
+    }
+
+    private void auditSave(Scanner sc, RBACSystem sys) {
+        System.out.print("Enter filename to save: ");
+        String filename = sc.nextLine().trim();
+        if (!filename.endsWith(".csv")) {
+            filename += ".csv";
+        }
+        sys.getAuditLog().saveToFile(filename);
     }
 
     public void run() {
@@ -99,8 +159,257 @@ public class CommandRegistry {
 
             User user = User.create(username, fullName, email);
             sys.getUserManager().add(user);
+
+            sys.getAuditLog().log("USER_CREATE", sys.getCurrentUser(), username,
+                    String.format("Created user: %s <%s>", fullName, email));
+
             System.out.println("User created successfully");
         } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    private void userUpdate(Scanner sc, RBACSystem sys) {
+        try {
+            System.out.print("Username to update: ");
+            String username = sc.nextLine().trim();
+
+            String oldFullName = sys.getUserManager().findByUsername(username)
+                    .map(User::fullName).orElse("");
+            String oldEmail = sys.getUserManager().findByUsername(username)
+                    .map(User::email).orElse("");
+
+            System.out.print("New full name (or press Enter to skip): ");
+            String fullName = sc.nextLine().trim();
+            if (fullName.isEmpty()) {
+                fullName = oldFullName;
+            }
+
+            System.out.print("New email (or press Enter to skip): ");
+            String email = sc.nextLine().trim();
+            if (email.isEmpty()) {
+                email = oldEmail;
+            }
+
+            sys.getUserManager().update(username, fullName, email);
+
+            sys.getAuditLog().log("USER_UPDATE", sys.getCurrentUser(), username,
+                    String.format("Updated: %s -> %s, %s -> %s", oldFullName, fullName, oldEmail, email));
+
+            System.out.println("User updated successfully");
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    private void userDelete(Scanner sc, RBACSystem sys) {
+        System.out.print("Username to delete: ");
+        String username = sc.nextLine().trim();
+
+        sys.getUserManager().findByUsername(username).ifPresentOrElse(
+                user -> {
+                    System.out.print("Are you sure? (yes/no): ");
+                    if (sc.nextLine().trim().equalsIgnoreCase("yes")) {
+                        sys.getAssignmentManager().findByUser(user)
+                                .forEach(a -> sys.getAssignmentManager().remove(a));
+
+                        sys.getUserManager().remove(user);
+
+                        sys.getAuditLog().log("USER_DELETE", sys.getCurrentUser(), username,
+                                String.format("Deleted user: %s <%s>", user.fullName(), user.email()));
+
+                        System.out.println("User deleted");
+                    } else {
+                        System.out.println("Deletion cancelled");
+                    }
+                },
+                () -> System.out.println("User not found")
+        );
+    }
+
+    private void roleCreate(Scanner sc, RBACSystem sys) {
+        try {
+            System.out.print("Role name: ");
+            String name = sc.nextLine().trim();
+
+            System.out.print("Description: ");
+            String description = sc.nextLine().trim();
+
+            Role role = new Role(name, description);
+            sys.getRoleManager().add(role);
+
+            sys.getAuditLog().log("ROLE_CREATE", sys.getCurrentUser(), name,
+                    "Created role: " + description);
+
+            System.out.println("Role created successfully");
+
+            System.out.print("Add permissions now? (yes/no): ");
+            if (sc.nextLine().trim().equalsIgnoreCase("yes")) {
+                addPermissionsToRole(sc, sys, role.getName());
+            }
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    private void roleDelete(Scanner sc, RBACSystem sys) {
+        System.out.print("Role name to delete: ");
+        String name = sc.nextLine().trim();
+
+        sys.getRoleManager().findByName(name).ifPresentOrElse(
+                role -> {
+                    List<RoleAssignment> assignments = sys.getAssignmentManager().findByRole(role);
+                    if (!assignments.isEmpty()) {
+                        System.out.println("Warning: Role is assigned to these users:");
+                        assignments.forEach(a -> System.out.println("  - " + a.user().username()));
+                        System.out.print("Delete anyway? (yes/no): ");
+                        if (!sc.nextLine().trim().equalsIgnoreCase("yes")) {
+                            System.out.println("Deletion cancelled");
+                            return;
+                        }
+                        assignments.forEach(a -> sys.getAssignmentManager().remove(a));
+                    }
+
+                    sys.getRoleManager().remove(role);
+
+                    sys.getAuditLog().log("ROLE_DELETE", sys.getCurrentUser(), name,
+                            "Deleted role with " + role.getPermissions().size() + " permissions");
+
+                    System.out.println("Role deleted");
+                },
+                () -> System.out.println("Role not found")
+        );
+    }
+
+    private void roleUpdate(Scanner sc, RBACSystem sys) {
+        try {
+            System.out.print("Role name to update: ");
+            String name = sc.nextLine().trim();
+
+            Role existing = sys.getRoleManager().findByName(name)
+                    .orElseThrow(() -> new IllegalArgumentException("Role not found"));
+
+            String oldName = existing.getName();
+            String oldDesc = existing.getDescription();
+
+            System.out.print("New name (or press Enter to skip): ");
+            String newName = sc.nextLine().trim();
+            if (newName.isEmpty()) newName = existing.getName();
+
+            System.out.print("New description (or press Enter to skip): ");
+            String newDesc = sc.nextLine().trim();
+            if (newDesc.isEmpty()) newDesc = existing.getDescription();
+
+            Role updated = new Role(newName, newDesc);
+            existing.getPermissions().forEach(updated::addPermission);
+
+            sys.getRoleManager().remove(existing);
+            sys.getRoleManager().add(updated);
+
+            sys.getAuditLog().log("ROLE_UPDATE", sys.getCurrentUser(), name,
+                    String.format("Updated: %s/%s -> %s/%s", oldName, oldDesc, newName, newDesc));
+
+            System.out.println("Role updated");
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    private void assignRole(Scanner sc, RBACSystem sys) {
+        try {
+            System.out.print("Username: ");
+            String username = sc.nextLine().trim();
+
+            User user = sys.getUserManager().findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+            System.out.println("\nAvailable roles:");
+            List<Role> roles = sys.getRoleManager().findAll();
+            for (int i = 0; i < roles.size(); i++) {
+                System.out.printf("%d. %s\n", i + 1, roles.get(i).getName());
+            }
+
+            System.out.print("Choose role number: ");
+            int roleChoice = Integer.parseInt(sc.nextLine().trim()) - 1;
+            Role role = roles.get(roleChoice);
+
+            System.out.print("Assignment type (permanent/temporary): ");
+            String type = sc.nextLine().trim().toLowerCase();
+
+            System.out.print("Reason (optional): ");
+            String reason = sc.nextLine().trim();
+            if (reason.isEmpty()) reason = null;
+
+            AssignmentMetadata metadata = AssignmentMetadata.now(sys.getCurrentUser(), reason);
+            RoleAssignment assignment;
+
+            if (type.equals("temporary")) {
+                System.out.print("Expiration date (yyyy-MM-dd HH:mm): ");
+                String expiresAt = sc.nextLine().trim();
+                System.out.print("Auto renew? (yes/no): ");
+                boolean autoRenew = sc.nextLine().trim().equalsIgnoreCase("yes");
+
+                assignment = new TemporaryAssignment(user, role, metadata, expiresAt, autoRenew);
+            } else {
+                assignment = new PermanentAssignment(user, role, metadata);
+            }
+
+            sys.getAssignmentManager().add(assignment);
+
+            sys.getAuditLog().log("ROLE_ASSIGN", sys.getCurrentUser(), username,
+                    String.format("Assigned role %s (%s) - %s", role.getName(), type,
+                            reason != null ? reason : "no reason"));
+
+            System.out.println("Role assigned successfully");
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    private void revokeRole(Scanner sc, RBACSystem sys) {
+        try {
+            System.out.print("Username: ");
+            String username = sc.nextLine().trim();
+
+            User user = sys.getUserManager().findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+            List<RoleAssignment> assignments = sys.getAssignmentManager().findByUser(user).stream()
+                    .filter(RoleAssignment::isActive)
+                    .collect(Collectors.toList());
+
+            if (assignments.isEmpty()) {
+                System.out.println("No active assignments for this user");
+                return;
+            }
+
+            System.out.println("Active assignments:");
+            for (int i = 0; i < assignments.size(); i++) {
+                RoleAssignment a = assignments.get(i);
+                System.out.printf("%d. %s [%s]\n", i + 1, a.role().getName(), a.assignmentType());
+            }
+
+            System.out.print("Choose assignment to revoke (0 to cancel): ");
+            int choice = Integer.parseInt(sc.nextLine().trim());
+            if (choice > 0 && choice <= assignments.size()) {
+                RoleAssignment selected = assignments.get(choice - 1);
+                String roleName = selected.role().getName();
+
+                if (selected instanceof PermanentAssignment perm) {
+                    perm.revoke();
+                    sys.getAuditLog().log("ROLE_REVOKE", sys.getCurrentUser(), username,
+                            "Revoked permanent role: " + roleName);
+                    System.out.println("Assignment revoked");
+                } else {
+                    sys.getAssignmentManager().remove(selected);
+                    sys.getAuditLog().log("ROLE_REVOKE", sys.getCurrentUser(), username,
+                            "Removed temporary role: " + roleName);
+                    System.out.println("Assignment removed");
+                }
+            }
+
+        } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
     }
@@ -132,54 +441,6 @@ public class CommandRegistry {
                         permissions.stream()
                                 .sorted(Comparator.comparing(Permission::resource))
                                 .forEach(p -> System.out.printf("  - %s\n", p.format()));
-                    }
-                },
-                () -> System.out.println("User not found")
-        );
-    }
-
-    private void userUpdate(Scanner sc, RBACSystem sys) {
-        try {
-            System.out.print("Username to update: ");
-            String username = sc.nextLine().trim();
-
-            System.out.print("New full name (or press Enter to skip): ");
-            String fullName = sc.nextLine().trim();
-            if (fullName.isEmpty()) {
-                fullName = sys.getUserManager().findByUsername(username)
-                        .map(User::fullName).orElse("");
-            }
-
-            System.out.print("New email (or press Enter to skip): ");
-            String email = sc.nextLine().trim();
-            if (email.isEmpty()) {
-                email = sys.getUserManager().findByUsername(username)
-                        .map(User::email).orElse("");
-            }
-
-            sys.getUserManager().update(username, fullName, email);
-            System.out.println("User updated successfully");
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
-
-    private void userDelete(Scanner sc, RBACSystem sys) {
-        System.out.print("Username to delete: ");
-        String username = sc.nextLine().trim();
-
-        sys.getUserManager().findByUsername(username).ifPresentOrElse(
-                user -> {
-                    System.out.print("Are you sure? (yes/no): ");
-                    if (sc.nextLine().trim().equalsIgnoreCase("yes")) {
-                        // Delete all assignments first
-                        sys.getAssignmentManager().findByUser(user)
-                                .forEach(a -> sys.getAssignmentManager().remove(a));
-
-                        sys.getUserManager().remove(user);
-                        System.out.println("User deleted");
-                    } else {
-                        System.out.println("Deletion cancelled");
                     }
                 },
                 () -> System.out.println("User not found")
@@ -240,27 +501,6 @@ public class CommandRegistry {
         printRoleTable(roles);
     }
 
-    private void roleCreate(Scanner sc, RBACSystem sys) {
-        try {
-            System.out.print("Role name: ");
-            String name = sc.nextLine().trim();
-
-            System.out.print("Description: ");
-            String description = sc.nextLine().trim();
-
-            Role role = new Role(name, description);
-            sys.getRoleManager().add(role);
-            System.out.println("Role created successfully");
-
-            System.out.print("Add permissions now? (yes/no): ");
-            if (sc.nextLine().trim().equalsIgnoreCase("yes")) {
-                addPermissionsToRole(sc, sys, role.getName());
-            }
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
-
     private void roleView(Scanner sc, RBACSystem sys) {
         System.out.print("Role name: ");
         String name = sc.nextLine().trim();
@@ -276,59 +516,6 @@ public class CommandRegistry {
                                 .filter(RoleAssignment::isActive)
                                 .forEach(a -> System.out.println("  - " + a.user().username()));
                     }
-                },
-                () -> System.out.println("Role not found")
-        );
-    }
-
-    private void roleUpdate(Scanner sc, RBACSystem sys) {
-        try {
-            System.out.print("Role name to update: ");
-            String name = sc.nextLine().trim();
-
-            Role existing = sys.getRoleManager().findByName(name)
-                    .orElseThrow(() -> new IllegalArgumentException("Role not found"));
-
-            System.out.print("New name (or press Enter to skip): ");
-            String newName = sc.nextLine().trim();
-            if (newName.isEmpty()) newName = existing.getName();
-
-            System.out.print("New description (or press Enter to skip): ");
-            String newDesc = sc.nextLine().trim();
-            if (newDesc.isEmpty()) newDesc = existing.getDescription();
-
-            Role updated = new Role(newName, newDesc);
-            existing.getPermissions().forEach(updated::addPermission);
-
-            sys.getRoleManager().remove(existing);
-            sys.getRoleManager().add(updated);
-
-            System.out.println("Role updated");
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
-
-    private void roleDelete(Scanner sc, RBACSystem sys) {
-        System.out.print("Role name to delete: ");
-        String name = sc.nextLine().trim();
-
-        sys.getRoleManager().findByName(name).ifPresentOrElse(
-                role -> {
-                    List<RoleAssignment> assignments = sys.getAssignmentManager().findByRole(role);
-                    if (!assignments.isEmpty()) {
-                        System.out.println("Warning: Role is assigned to these users:");
-                        assignments.forEach(a -> System.out.println("  - " + a.user().username()));
-                        System.out.print("Delete anyway? (yes/no): ");
-                        if (!sc.nextLine().trim().equalsIgnoreCase("yes")) {
-                            System.out.println("Deletion cancelled");
-                            return;
-                        }
-                        assignments.forEach(a -> sys.getAssignmentManager().remove(a));
-                    }
-
-                    sys.getRoleManager().remove(role);
-                    System.out.println("Role deleted");
                 },
                 () -> System.out.println("Role not found")
         );
@@ -350,6 +537,10 @@ public class CommandRegistry {
 
             Permission permission = new Permission(permName, resource, desc);
             sys.getRoleManager().addPermissionToRole(roleName, permission);
+
+            sys.getAuditLog().log("PERMISSION_ADD", sys.getCurrentUser(), roleName,
+                    String.format("Added permission %s on %s", permName, resource));
+
             System.out.println("Permission added");
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -378,7 +569,12 @@ public class CommandRegistry {
             System.out.print("Enter number to remove (0 to cancel): ");
             int choice = Integer.parseInt(sc.nextLine().trim());
             if (choice > 0 && choice <= perms.size()) {
-                sys.getRoleManager().removePermissionFromRole(roleName, perms.get(choice - 1));
+                Permission removed = perms.get(choice - 1);
+                sys.getRoleManager().removePermissionFromRole(roleName, removed);
+
+                sys.getAuditLog().log("PERMISSION_REMOVE", sys.getCurrentUser(), roleName,
+                        String.format("Removed permission %s on %s", removed.name(), removed.resource()));
+
                 System.out.println("Permission removed");
             }
         } catch (Exception e) {
@@ -426,95 +622,6 @@ public class CommandRegistry {
             } else {
                 printRoleTable(results);
             }
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
-
-    private void assignRole(Scanner sc, RBACSystem sys) {
-        try {
-            System.out.print("Username: ");
-            String username = sc.nextLine().trim();
-
-            User user = sys.getUserManager().findByUsername(username)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-            System.out.println("\nAvailable roles:");
-            List<Role> roles = sys.getRoleManager().findAll();
-            for (int i = 0; i < roles.size(); i++) {
-                System.out.printf("%d. %s\n", i + 1, roles.get(i).getName());
-            }
-
-            System.out.print("Choose role number: ");
-            int roleChoice = Integer.parseInt(sc.nextLine().trim()) - 1;
-            Role role = roles.get(roleChoice);
-
-            System.out.print("Assignment type (permanent/temporary): ");
-            String type = sc.nextLine().trim().toLowerCase();
-
-            System.out.print("Reason (optional): ");
-            String reason = sc.nextLine().trim();
-            if (reason.isEmpty()) reason = null;
-
-            AssignmentMetadata metadata = AssignmentMetadata.now(sys.getCurrentUser(), reason);
-            RoleAssignment assignment;
-
-            if (type.equals("temporary")) {
-                System.out.print("Expiration date (yyyy-MM-dd HH:mm): ");
-                String expiresAt = sc.nextLine().trim();
-                System.out.print("Auto renew? (yes/no): ");
-                boolean autoRenew = sc.nextLine().trim().equalsIgnoreCase("yes");
-
-                assignment = new TemporaryAssignment(user, role, metadata, expiresAt, autoRenew);
-            } else {
-                assignment = new PermanentAssignment(user, role, metadata);
-            }
-
-            sys.getAssignmentManager().add(assignment);
-            System.out.println("Role assigned successfully");
-
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
-
-    private void revokeRole(Scanner sc, RBACSystem sys) {
-        try {
-            System.out.print("Username: ");
-            String username = sc.nextLine().trim();
-
-            User user = sys.getUserManager().findByUsername(username)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-            List<RoleAssignment> assignments = sys.getAssignmentManager().findByUser(user).stream()
-                    .filter(RoleAssignment::isActive)
-                    .collect(Collectors.toList());
-
-            if (assignments.isEmpty()) {
-                System.out.println("No active assignments for this user");
-                return;
-            }
-
-            System.out.println("Active assignments:");
-            for (int i = 0; i < assignments.size(); i++) {
-                RoleAssignment a = assignments.get(i);
-                System.out.printf("%d. %s [%s]\n", i + 1, a.role().getName(), a.assignmentType());
-            }
-
-            System.out.print("Choose assignment to revoke (0 to cancel): ");
-            int choice = Integer.parseInt(sc.nextLine().trim());
-            if (choice > 0 && choice <= assignments.size()) {
-                RoleAssignment selected = assignments.get(choice - 1);
-
-                if (selected instanceof PermanentAssignment perm) {
-                    perm.revoke();
-                    System.out.println("Assignment revoked");
-                } else {
-                    sys.getAssignmentManager().remove(selected);
-                    System.out.println("Assignment removed");
-                }
-            }
-
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
@@ -581,6 +688,10 @@ public class CommandRegistry {
             String newDate = sc.nextLine().trim();
 
             sys.getAssignmentManager().extendTemporaryAssignment(id, newDate);
+
+            sys.getAuditLog().log("ASSIGNMENT_EXTEND", sys.getCurrentUser(), id,
+                    "Extended to: " + newDate);
+
             System.out.println("Assignment extended");
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
