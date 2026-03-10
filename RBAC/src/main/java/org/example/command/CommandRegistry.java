@@ -9,6 +9,7 @@ import org.example.Manager.UserManager;
 import org.example.Manager.RoleManager;
 import org.example.Manager.AssignmentManager;
 import org.example.audit.AuditLog;
+import org.example.report.ReportGenerator;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -68,6 +69,55 @@ public class CommandRegistry {
 
         parser.registerCommand("audit-log", "View audit log", this::auditLog);
         parser.registerCommand("audit-save", "Save audit log to file", this::auditSave);
+
+        parser.registerCommand("report-users", "Generate user report", this::reportUsers);
+        parser.registerCommand("report-roles", "Generate role report", this::reportRoles);
+        parser.registerCommand("report-matrix", "Generate permission matrix", this::reportMatrix);
+    }
+
+    private void reportUsers(Scanner sc, RBACSystem sys) {
+        ReportGenerator generator = new ReportGenerator();
+        String report = generator.generateUserReport(sys.getUserManager(), sys.getAssignmentManager());
+
+        System.out.println(report);
+
+        System.out.print("Save to file? (yes/no): ");
+        if (sc.nextLine().trim().equalsIgnoreCase("yes")) {
+            System.out.print("Enter filename: ");
+            String filename = sc.nextLine().trim();
+            if (!filename.endsWith(".txt")) filename += ".txt";
+            generator.exportToFile(report, filename);
+        }
+    }
+
+    private void reportRoles(Scanner sc, RBACSystem sys) {
+        ReportGenerator generator = new ReportGenerator();
+        String report = generator.generateRoleReport(sys.getRoleManager(), sys.getAssignmentManager());
+
+        System.out.println(report);
+
+        System.out.print("Save to file? (yes/no): ");
+        if (sc.nextLine().trim().equalsIgnoreCase("yes")) {
+            System.out.print("Enter filename: ");
+            String filename = sc.nextLine().trim();
+            if (!filename.endsWith(".txt")) filename += ".txt";
+            generator.exportToFile(report, filename);
+        }
+    }
+
+    private void reportMatrix(Scanner sc, RBACSystem sys) {
+        ReportGenerator generator = new ReportGenerator();
+        String report = generator.generatePermissionMatrix(sys.getUserManager(), sys.getAssignmentManager());
+
+        System.out.println(report);
+
+        System.out.print("Save to file? (yes/no): ");
+        if (sc.nextLine().trim().equalsIgnoreCase("yes")) {
+            System.out.print("Enter filename: ");
+            String filename = sc.nextLine().trim();
+            if (!filename.endsWith(".txt")) filename += ".txt";
+            generator.exportToFile(report, filename);
+        }
     }
 
     private void auditLog(Scanner sc, RBACSystem sys) {
