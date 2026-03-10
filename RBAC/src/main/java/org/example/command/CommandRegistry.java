@@ -11,6 +11,7 @@ import org.example.Manager.AssignmentManager;
 import org.example.audit.AuditLog;
 import org.example.report.ReportGenerator;
 import org.example.util.ConsoleUtils;
+import org.example.util.FormatUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -468,35 +469,47 @@ public class CommandRegistry {
     }
 
     private void userView(Scanner sc, RBACSystem sys) {
-        System.out.print("Username: ");
-        String username = sc.nextLine().trim();
+        String username = ConsoleUtils.promptString(sc, "Username", true);
 
         sys.getUserManager().findByUsername(username).ifPresentOrElse(
                 user -> {
-                    System.out.println("\n" + user.format());
-                    System.out.println("\nAssigned roles:");
+                    System.out.println(FormatUtils.formatBox(user.format()));
+
+                    System.out.println("\n" + FormatUtils.formatHeader("Assigned Roles"));
                     List<RoleAssignment> assignments = sys.getAssignmentManager().findByUser(user);
                     if (assignments.isEmpty()) {
                         System.out.println("  No roles assigned");
                     } else {
-                        assignments.forEach(a -> {
-                            String status = a.isActive() ? "ACTIVE" : "INACTIVE";
-                            System.out.printf("  - %s [%s] %s\n",
-                                    a.role().getName(), a.assignmentType(), status);
-                        });
+                        String[] headers = {"Role", "Type", "Status", "Assigned By"};
+                        List<String[]> rows = assignments.stream()
+                                .map(a -> new String[]{
+                                        a.role().getName(),
+                                        a.assignmentType(),
+                                        a.isActive() ? "ACTIVE" : "INACTIVE",
+                                        a.metadata().assignedBy()
+                                })
+                                .collect(Collectors.toList());
+                        System.out.println(FormatUtils.formatTable(headers, rows));
                     }
 
-                    System.out.println("\nAll permissions:");
+                    System.out.println("\n" + FormatUtils.formatHeader("Permissions"));
                     Set<Permission> permissions = sys.getAssignmentManager().getUserPermissions(user);
                     if (permissions.isEmpty()) {
                         System.out.println("  No permissions");
                     } else {
-                        permissions.stream()
+                        String[] headers = {"Name", "Resource", "Description"};
+                        List<String[]> rows = permissions.stream()
                                 .sorted(Comparator.comparing(Permission::resource))
-                                .forEach(p -> System.out.printf("  - %s\n", p.format()));
+                                .map(p -> new String[]{
+                                        p.name(),
+                                        p.resource(),
+                                        FormatUtils.truncate(p.description(), 30)
+                                })
+                                .collect(Collectors.toList());
+                        System.out.println(FormatUtils.formatTable(headers, rows));
                     }
                 },
-                () -> System.out.println("User not found")
+                () -> ConsoleUtils.printError("User not found")
         );
     }
 
@@ -853,17 +866,43 @@ public class CommandRegistry {
     }
 
     private void stats(Scanner sc, RBACSystem sys) {
-        System.out.println(sys.generateStatistics());
+        String stats = sys.generateStatistics();
+        System.out.println(FormatUtils.formatBox(stats));
 
         Map<Role, Long> roleCounts = sys.getAssignmentManager().findAll().stream()
                 .filter(RoleAssignment::isActive)
                 .collect(Collectors.groupingBy(RoleAssignment::role, Collectors.counting()));
 
-        System.out.println("\nTop 3 most popular roles:");
-        roleCounts.entrySet().stream()
+        System.out.println("\n" + FormatUtils.formatHeader("Top 3 Most Popular Roles"));
+        String[] headers = {"Role", "Users", "Description"};
+        List<String[]> rows = roleCounts.entrySet().stream()
                 .sorted(Map.Entry.<Role, Long>comparingByValue().reversed())
                 .limit(3)
-                .forEach(e -> System.out.printf("  %s: %d users\n", e.getKey().getName(), e.getValue()));
+                .map(e -> new String[]{
+                        e.getKey().getName(),
+                        String.valueOf(e.getValue()),
+                        FormatUtils.truncate(e.getKey().getDescription(), 30)
+                })
+                .collect(Collectors.toList());
+
+        if (!rows.isEmpty()) {
+            System.out.println(FormatUtils.formatTable(headers, rows));
+        } else {
+            System.out.println("No role assignments found");
+        }
+    }
+
+    private void help(Scanner sc, RBACSystem sys) {
+        System.out.println(FormatUtils.formatHeader("RBAC System Commands"));
+        Map<String, String> descriptions = parser.getCommandDescriptions();
+
+        String[] headers = {"Command", "Description"};
+        List<String[]> rows = descriptions.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(e -> new String[]{e.getKey(), e.getValue()})
+                .collect(Collectors.toList());
+
+        System.out.println(FormatUtils.formatTable(headers, rows));
     }
 
     private void clear(Scanner sc, RBACSystem sys) {
@@ -911,45 +950,44 @@ public class CommandRegistry {
     }
 
     private void printUserTable(List<User> users) {
-        System.out.println("\n" + "=".repeat(80));
-        System.out.printf("%-20s | %-30s | %-30s\n", "Username", "Full Name", "Email");
-        System.out.println("=".repeat(80));
-        users.forEach(u -> System.out.printf("%-20s | %-30s | %-30s\n",
-                u.username(), u.fullName(), u.email()));
-        System.out.println("=".repeat(80));
-        System.out.println("Total: " + users.size());
+        String[] headers = {"Username", "Full Name", "Email"};
+        List<String[]> rows = users.stream()
+                .map(u -> new String[]{u.username(), u.fullName(), u.email()})
+                .collect(Collectors.toList());
+
+        System.out.println(FormatUtils.formatTable(headers, rows));
+        System.out.println("Total users: " + users.size());
     }
 
     private void printRoleTable(List<Role> roles) {
-        System.out.println("\n" + "=".repeat(80));
-        System.out.printf("%-20s | %-30s | %-10s | %s\n", "Name", "Description", "Permissions", "ID");
-        System.out.println("=".repeat(80));
-        roles.forEach(r -> System.out.printf("%-20s | %-30s | %-10d | %s\n",
-                r.getName(),
-                truncate(r.getDescription(), 30),
-                r.getPermissions().size(),
-                truncate(r.getId(), 8)));
-        System.out.println("=".repeat(80));
-        System.out.println("Total: " + roles.size());
+        String[] headers = {"Name", "Description", "#Perms", "ID"};
+        List<String[]> rows = roles.stream()
+                .map(r -> new String[]{
+                        r.getName(),
+                        FormatUtils.truncate(r.getDescription(), 25),
+                        String.valueOf(r.getPermissions().size()),
+                        FormatUtils.truncate(r.getId(), 8)
+                })
+                .collect(Collectors.toList());
+
+        System.out.println(FormatUtils.formatTable(headers, rows));
+        System.out.println("Total roles: " + roles.size());
     }
 
     private void printAssignmentTable(List<RoleAssignment> assignments) {
-        System.out.println("\n" + "=".repeat(100));
-        System.out.printf("%-15s | %-15s | %-10s | %-8s | %s\n",
-                "Username", "Role", "Type", "Status", "Assigned At");
-        System.out.println("=".repeat(100));
+        String[] headers = {"Username", "Role", "Type", "Status", "Assigned At"};
+        List<String[]> rows = assignments.stream()
+                .map(a -> new String[]{
+                        a.user().username(),
+                        FormatUtils.truncate(a.role().getName(), 12),
+                        a.assignmentType(),
+                        a.isActive() ? "ACTIVE" : "INACTIVE",
+                        FormatUtils.truncate(a.metadata().assignedAt(), 16)
+                })
+                .collect(Collectors.toList());
 
-        assignments.forEach(a -> {
-            String status = a.isActive() ? "ACTIVE" : "INACTIVE";
-            System.out.printf("%-15s | %-15s | %-10s | %-8s | %s\n",
-                    a.user().username(),
-                    truncate(a.role().getName(), 15),
-                    a.assignmentType(),
-                    status,
-                    truncate(a.metadata().assignedAt(), 19));
-        });
-        System.out.println("=".repeat(100));
-        System.out.println("Total: " + assignments.size());
+        System.out.println(FormatUtils.formatTable(headers, rows));
+        System.out.println("Total assignments: " + assignments.size());
     }
 
     private String truncate(String s, int maxLen) {
