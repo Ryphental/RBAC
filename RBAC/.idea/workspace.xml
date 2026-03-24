@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="9c903dd3-2cc9-4847-be68-6c39e56bcda8" name="Изменения" comment="4.6. Класс для парсинга дат">
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="RBAC" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Record" />
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Ryphental&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Ryphental/RBAC.git&quot;,
+    &quot;accountId&quot;: &quot;f3ba8699-ced5-453e-b8a5-38b4adb6962d&quot;
+  }
+}</component>
+  <component name="GradleModuleStateConfig" initialized="true">
+    <option name="configPaths">
+      <map>
+        <entry key="$PROJECT_DIR$" value="C:\Users\фф\OpenideProjects\RBAC\RBAC\build.gradle.kts" />
+      </map>
+    </option>
+  </component>
+  <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$" gradleHome="C:\Users\фф\.gradle\wrapper\dists\gradle-9.1.0-bin\9agqghryom9wkf8r80qlhnts3\gradle-9.1.0" javaHome="C:\Users\фф\.jdks\axiomjdk-25.0.1" gradleVersion="9.1.0" />
+  <component name="OpenIdeProjectLocalState">
+    <option name="firstOpen" value="false" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="39n8uVQT6ZBGnaBkfJrQR76rmmG" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.CommandParserTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.CommandParserTest.testRegisterCommand.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.CommandRegistryTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.ConsoleUtilsTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.RBAC [:org.example.Main.main()].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.RBACSystemTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.ValidationUtilsTest.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/фф/OpenideProjects/RBAC/RBAC/src/main/java/org/example/Main.java&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;SDK&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;Приложение.Main.executor&quot;: &quot;Run&quot;
+  }
+}</component>
+  <component name="RunManager" selected="Gradle.CommandParserTest.testRegisterCommand">
+    <configuration name="CommandParserTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;CommandParserTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="CommandParserTest.testRegisterCommand" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;CommandParserTest.testRegisterCommand&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="CommandRegistryTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;CommandRegistryTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="ConsoleUtilsTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;ConsoleUtilsTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="RBAC [clean]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="clean" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Gradle.CommandParserTest.testRegisterCommand" />
+        <item itemvalue="Gradle.RBAC [clean]" />
+        <item itemvalue="Gradle.CommandParserTest" />
+        <item itemvalue="Gradle.ConsoleUtilsTest" />
+        <item itemvalue="Gradle.CommandRegistryTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Задача по умолчанию">
+      <changelist id="9c903dd3-2cc9-4847-be68-6c39e56bcda8" name="Изменения" comment="" />
+      <created>1771320705290</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1771320705290</updated>
+    </task>
+    <task id="LOCAL-00001" summary="1.1. Record для пользователя">
+      <option name="closed" value="true" />
+      <created>1771322737066</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1771322737066</updated>
+    </task>
+    <task id="LOCAL-00002" summary="1.2. Record для права доступа (Permission)">
+      <option name="closed" value="true" />
+      <created>1771323774666</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1771323774666</updated>
+    </task>
+    <task id="LOCAL-00003" summary="1.3. Класс роли (Role)">
+      <option name="closed" value="true" />
+      <created>1771326211251</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1771326211251</updated>
+    </task>
+    <task id="LOCAL-00004" summary="1.4. Record для метаданных назначения">
+      <option name="closed" value="true" />
+      <created>1771327088694</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1771327088694</updated>
+    </task>
+    <task id="LOCAL-00005" summary="1.5. Интерфейс назначения роли">
+      <option name="closed" value="true" />
+      <created>1771327237501</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1771327237501</updated>
+    </task>
+    <task id="LOCAL-00006" summary="1.6. Абстрактный класс назначения">
+      <option name="closed" value="true" />
+      <created>1771328596591</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1771328596591</updated>
+    </task>
+    <task id="LOCAL-00007" summary="1.7. Класс постоянного назначения">
+      <option name="closed" value="true" />
+      <created>1771329020614</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1771329020614</updated>
+    </task>
+    <task id="LOCAL-00008" summary="1.8. Класс временного назначения">
+      <option name="closed" value="true" />
+      <created>1771332101710</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1771332101710</updated>
+    </task>
+    <task id="LOCAL-00009" summary="2.1. Фильтрация пользователей">
+      <option name="closed" value="true" />
+      <created>1771929351295</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1771929351295</updated>
+    </task>
+    <task id="LOCAL-00010" summary="2.2. Функциональный интерфейс для фильтрации ролей">
+      <option name="closed" value="true" />
+      <created>1771929842533</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1771929842533</updated>
+    </task>
+    <task id="LOCAL-00011" summary="2.3. Функциональный интерфейс для фильтрации назначений">
+      <option name="closed" value="true" />
+      <created>1771930809390</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1771930809390</updated>
+    </task>
+    <task id="LOCAL-00012" summary="2.4. Cортировка">
+      <option name="closed" value="true" />
+      <created>1771931231588</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1771931231588</updated>
+    </task>
+    <task id="LOCAL-00013" summary="3.1. Интерфейс репозитория">
+      <option name="closed" value="true" />
+      <created>1771934605339</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1771934605339</updated>
+    </task>
+    <task id="LOCAL-00014" summary="3.2. Менеджер пользователей">
+      <option name="closed" value="true" />
+      <created>1771935063140</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1771935063140</updated>
+    </task>
+    <task id="LOCAL-00015" summary="4.3. Менеджер ролей">
+      <option name="closed" value="true" />
+      <created>1771935331666</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1771935331666</updated>
+    </task>
+    <task id="LOCAL-00016" summary="4.4. Менеджер назначений">
+      <option name="closed" value="true" />
+      <created>1771935749837</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1771935749837</updated>
+    </task>
+    <task id="LOCAL-00017" summary="4.1. Функциональный интерфейс команды">
+      <option name="closed" value="true" />
+      <created>1772538143073</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1772538143073</updated>
+    </task>
+    <task id="LOCAL-00018" summary="4.2. Класс системы RBAC">
+      <option name="closed" value="true" />
+      <created>1772538541301</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1772538541301</updated>
+    </task>
+    <task id="LOCAL-00019" summary="4.3. Парсер команд и меню">
+      <option name="closed" value="true" />
+      <created>1772538640756</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1772538640756</updated>
+    </task>
+    <task id="LOCAL-00020" summary="4.4. Реализация команд через лямбда-выражения">
+      <option name="closed" value="true" />
+      <created>1772542251530</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1772542251530</updated>
+    </task>
+    <task id="LOCAL-00021" summary="4.1. Система валидации">
+      <option name="closed" value="true" />
+      <created>1773140227310</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1773140227310</updated>
+    </task>
+    <task id="LOCAL-00022" summary="4.2. Система логирования событий">
+      <option name="closed" value="true" />
+      <created>1773141082687</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1773141082687</updated>
+    </task>
+    <task id="LOCAL-00023" summary="4.3. Экспорт отчётов">
+      <option name="closed" value="true" />
+      <created>1773141420104</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1773141420104</updated>
+    </task>
+    <task id="LOCAL-00024" summary="4.4. Интерактивные мастера (wizards)">
+      <option name="closed" value="true" />
+      <created>1773141798033</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1773141798033</updated>
+    </task>
+    <task id="LOCAL-00025" summary="4.5. Класс утилит форматирования">
+      <option name="closed" value="true" />
+      <created>1773142206717</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1773142206717</updated>
+    </task>
+    <task id="LOCAL-00026" summary="4.6. Класс для парсинга дат">
+      <option name="closed" value="true" />
+      <created>1773142512152</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1773142512152</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="1.2. Record для права доступа (Permission)" />
+    <MESSAGE value="1.3. Класс роли (Role)" />
+    <MESSAGE value="1.4. Record для метаданных назначения" />
+    <MESSAGE value="1.5. Интерфейс назначения роли" />
+    <MESSAGE value="1.6. Абстрактный класс назначения" />
+    <MESSAGE value="1.7. Класс постоянного назначения" />
+    <MESSAGE value="1.8. Класс временного назначения" />
+    <MESSAGE value="2.1. Фильтрация пользователей" />
+    <MESSAGE value="2.2. Функциональный интерфейс для фильтрации ролей" />
+    <MESSAGE value="2.3. Функциональный интерфейс для фильтрации назначений" />
+    <MESSAGE value="2.4. Cортировка" />
+    <MESSAGE value="3.1. Интерфейс репозитория" />
+    <MESSAGE value="3.2. Менеджер пользователей" />
+    <MESSAGE value="4.3. Менеджер ролей" />
+    <MESSAGE value="4.4. Менеджер назначений" />
+    <MESSAGE value="4.1. Функциональный интерфейс команды" />
+    <MESSAGE value="4.2. Класс системы RBAC" />
+    <MESSAGE value="4.3. Парсер команд и меню" />
+    <MESSAGE value="4.4. Реализация команд через лямбда-выражения" />
+    <MESSAGE value="4.1. Система валидации" />
+    <MESSAGE value="4.2. Система логирования событий" />
+    <MESSAGE value="4.3. Экспорт отчётов" />
+    <MESSAGE value="4.4. Интерактивные мастера (wizards)" />
+    <MESSAGE value="4.5. Класс утилит форматирования" />
+    <MESSAGE value="4.6. Класс для парсинга дат" />
+    <option name="LAST_COMMIT_MESSAGE" value="4.6. Класс для парсинга дат" />
+  </component>
+</project>
